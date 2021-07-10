@@ -7,69 +7,35 @@
  * */
 
 const db = require("../db");
+const ExpressError = require('../expressError');
 
-
-class Cat {
-
-  /** get all cats: returns [{id, name, age}, ...] */
-
-  static async getAll() {
-    const result = await db.query(
-        "SELECT id, name, age FROM cats");
-    return result.rows;
+class Cat{
+  static async getAll(){
+    const res = await db.query(`SELECT * FROM cats`);
+    
+    return res.rows;
   }
-
-  /** get cat by id: returns {name, age} */
-
-  static async getById(id) {
-    const result = await db.query(
-        `SELECT name, age FROM cats WHERE id = $1`,
-        [id]);
-
-    if (result.rows.length === 0) {
-      throw new Error(`No such cat: ${id}`);
+  static async getCatById(id){
+    const res = await db.query(`SELECT id, name, age FROM cats WHERE id = $1`, [id]);
+    if (res.rows.length===0){
+      throw new ExpressError("Cat not found", 404);
     }
-
-    return result.rows[0];
+    return res.rows[0];
   }
-
-  /** create a cat: returns {name, age} */
-
-  static async create(name, age) {
-    const result = await db.query(
-        `INSERT INTO cats (name, age)
-        VALUES ($1, $2) RETURNING name, age`,
-        [name, age]);
-
-    return result.rows[0];
-  }
-
-  /** delete cat with given id */
-
-  static async remove(id) {
-    const result = await db.query(
-        `DELETE FROM cats WHERE id=$1 RETURNING id`,
-        [id]);
-
-    if (result.rows.length === 0) {
-      throw new Error(`No such cat: ${id}`);
+  static async createCat(name, age){
+    if (!name || !age){
+      throw new ExpressError("Missing required fields", 400);
     }
+    const res = await db.query(`INSERT INTO cats (name, age)
+    VALUES ($1, $2) RETURNING id, name, age`, [name, age]);
+    return res.rows[0];
   }
-
-  /** age cat by 1 year, return new age */
-
-  static async makeOlder(id) {
-    const result = await db.query(
-        `UPDATE cats SET age=age+1 WHERE id=$1 RETURNING age`,
-        [id]);
-
-    if (result.rows.length === 0) {
-      throw new Error(`No such cat: ${id}`);
+  static async delete(id){
+    const res = await db.query(`DELETE FROM cats WHERE id = $1 RETURNING id`,[id]);
+    if (res.rows.length===0){
+      throw new ExpressError("Cat not found", 404);
     }
-
-    return result.rows[0].age;
   }
 }
-
 
 module.exports = Cat;

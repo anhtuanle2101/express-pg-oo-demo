@@ -7,53 +7,46 @@ const Cat = require("../models/cat");
 
 const router = new express.Router();
 
-// IMPORTANT: all of these function bodies should really be
-// wrapped in a try/catch, where catching an error calls
-// next(err) --- this is omitted here for brevity in slides
-
-
 /** get all cats: [{id, name, age}, ...] */
 
 router.get("/", async function (req, res, next) {
-  let result = await db.query("SELECT * FROM cats");
-  let cats = result.rows;
-  return res.json(cats)
+  try {
+    const cats = await Cat.getAll();
+
+    return res.json(cats)
+  } catch (err) {
+    return next(err);
+  }
 });
 
-/** (fixed) get all cats: [{id, name, age}] */
 
-router.get("/", async function (req, res, next) {
-  let cats = await Cat.getAll();
-  return res.json(cats);
-});
+router.get('/:id', async (req, res, next)=>{
+  try {
+    const cat = await Cat.getCatById(req.params.id);
+  
+    return res.json(cat);
+  } catch (err) {
+    return next(err);
+  }
+})
 
-/** get cat by id: {id, name, age} */
+router.post('/', async (req, res, next)=>{
+  try {
+    const {name, age} = req.body;
+    const cat = await Cat.createCat(name, age);
+    return res.json(cat);
+  } catch (err) {
+    return next(err);
+  }
+})
 
-router.get("/:id", async function (req, res, next) {
-  let cat = await Cat.getById(req.params.id);
-  return res.json(cat);
-});
-
-/** create cat from {name, age}: return {name, age} */
-
-router.post("/", async function (req, res, next) {
-  let cat = await Cat.create(req.body.name, req.body.age);
-  return res.json(cat);
-});
-
-/** delete cat from {id}; returns "deleted" */
-
-router.delete("/:id", async function (req, res, next) {
-  await Cat.remove(req.params.id);
-  return res.json("deleted");
-});
-
-/** age cat: returns new age */
-
-router.post("/:id/age", async function (req, res, next) {
-  let newAge = await Cat.makeOlder(req.params.id);
-  return res.json(newAge);
-});
-
+router.delete('/:id', async (req, res, next)=>{
+  try {
+    await Cat.delete(id);
+    return res.json({ msg:'deleted!'});
+  } catch (err) {
+    return next(err);
+  }
+})
 
 module.exports = router;

@@ -6,11 +6,6 @@ const Dog = require("../models/dog");
 
 const router = new express.Router();
 
-// IMPORTANT: all of these function bodies should really be
-// wrapped in a try/catch, where catching an error calls
-// next(err) --- this is omitted here for brevity in slides
-
-
 /** get all dogs: [{id, name, age}, ...] */
 
 router.get("/", async function (req, res, next) {
